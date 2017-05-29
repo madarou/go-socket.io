@@ -27,6 +27,11 @@
       socket.on('reply', function(msg){
         $('#messages').append($('<li>').text(msg));
       });
+      socket.on('notice', function(msg){
+       // alert("收到房间消息"+msg);
+        $('#messages').append($('<li>').text(msg));
+       // console.log(msg);
+      });
       $('form').submit(function(){
         s2.emit('msg', $('#m').val(), function(data){
           $('#messages').append($('<li>').text('ACK CALLBACK: ' + data));

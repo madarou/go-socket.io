@@ -10,6 +10,7 @@ import (
 type Server struct {
 	handlers map[string]*namespaceHandler
 	eio      *engineio.Server
+	broadcast BroadcastAdaptor
 }
 
 // NewServer returns a server.
@@ -20,6 +21,7 @@ func NewServer(c *engineio.Options) (*Server, error) {
 	}
 	return &Server{
 		handlers: make(map[string]*namespaceHandler),
+		broadcast:newBroadcastDefault(),
 		eio:      eio,
 	}, nil
 }
@@ -60,7 +62,7 @@ func (s *Server) OnEvent(nsp, event string, f interface{}) {
 }
 
 // Serve serves go-socket.io server
-func (s *Server) Serve() error {
+func (s *Server)  Serve() error {
 	for {
 		conn, err := s.eio.Accept()
 		if err != nil {
@@ -92,4 +94,11 @@ func (s *Server) getNamespace(nsp string) *namespaceHandler {
 	handler := newHandler()
 	s.handlers[nsp] = handler
 	return handler
+}
+
+func (s *Server) Rooms()BroadcastAdaptor{
+	if s.broadcast==nil{
+		s.broadcast=newBroadcastDefault()
+	}
+	return s.broadcast
 }
