@@ -2,6 +2,7 @@ package socketio
 
 import (
 	"sync"
+	"fmt"
 )
 
 // BroadcastAdaptor is the adaptor to handle broadcasts.
@@ -14,7 +15,13 @@ type BroadcastAdaptor interface {
 	Leave(room string, conn Conn) error
 
 	// Send will send an event with args to the room. If "ignore" is not nil, the event will be excluded from being sent to "ignore".
-	Send(ignore Conn, room, event string, args ...interface{}) error
+	BroadcastTo(ignore Conn, room, event string, args ...interface{}) error
+
+	// Find target belong to which room
+	Belong(target Conn)(string,error)
+
+	// List
+	List()error
 }
 
 type broadcast struct {
@@ -54,11 +61,12 @@ func (b *broadcast) Leave(room string, conn Conn) error{
 		return nil
 	}
 	b.m[room] = conns
+	fmt.Println(conn.ID()," leaves room "+room)
 	return nil
 }
 
 //谁发就ignore谁
-func (b *broadcast) Send(ignore Conn, room, event string, args ...interface{}) error {
+func (b *broadcast) BroadcastTo(ignore Conn, room, event string, args ...interface{}) error {
 	b.RLock()
 	conns := b.m[room]
 	for id, s := range conns {
@@ -66,6 +74,32 @@ func (b *broadcast) Send(ignore Conn, room, event string, args ...interface{}) e
 			continue
 		}
 		s.Emit(event, args...)
+	}
+	b.RUnlock()
+	return nil
+}
+
+func (b *broadcast) Belong(target Conn)(string,error){
+	b.RLock()
+	for room, conns:=range b.m{
+		for id, _:=range conns{
+			if target.ID() == id{
+				return room,nil
+			}
+		}
+	}
+	b.RUnlock()
+	return "",nil
+}
+
+func (b *broadcast) List()error{
+	b.RLock()
+	for room, conns:=range b.m{
+		fmt.Printf("room name=%s: ",room)
+		for id, _:=range conns{
+			fmt.Printf("%s,",id)
+		}
+		fmt.Println()
 	}
 	b.RUnlock()
 	return nil

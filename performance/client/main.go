@@ -8,16 +8,16 @@ import (
 )
 
 var opts = &socketio_client.Options{
-//Transport:"polling",
-Transport:"websocket",
-Query:     make(map[string]string),
+	//Transport:"polling",
+	Transport:"websocket",
+	Query:     make(map[string]string),
 }
 //opts.Query["user"] = "user"
 //opts.Query["pwd"] = "pass"
 var uri = "http://localhost:8000"
 
 const (
-	CLIENT_NUM=3000//同时多少客户端连接
+	CLIENT_NUM=5000//同时多少客户端连接
 	ROOM_NUM//每个房间最多多少人
 )
 func main() {
@@ -29,7 +29,7 @@ func main() {
 	clients[0].Emit("printroom")
 	for i:=0;i<CLIENT_NUM;i++{
 		clients[i].Emit("talk","hello"+strconv.Itoa(1+i))
-		//time.Sleep(time.Second*1)
+		time.Sleep(time.Microsecond*1)
 	}
 
 	time.Sleep(time.Minute*1)
